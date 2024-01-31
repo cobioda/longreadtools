@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "longreadtools"
+  site-url: "https://cobioda.github.io/longreadtools"
+  description: "A working repository for development of tools for the analasis of long read rna sequencing data."
+  repo-branch: main
+  repo-url: "https://github.com/cobioda/longreadtools"

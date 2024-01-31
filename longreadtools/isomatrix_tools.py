@@ -11,7 +11,7 @@ from scipy.sparse import csr_matrix
 
 def isomatrix_to_anndata(file_path:str,  # The path to the isomatrix csv file to be read.
                         sparse:bool=True  # Flag to determine if the output should be a sparse matrix.
-) -> AnnData: # The converted isomatix as a scanpy compatible  anndata object
+) -> AnnData: # The converted isomatrix as a scanpy compatible  anndata object
     """
     This function reads a file into a pandas DataFrame, performs some transformations, 
     and then converts the DataFrame into a sparse matrix and an AnnData object.

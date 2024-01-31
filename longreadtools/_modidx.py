@@ -9,6 +9,4 @@ d = { 'settings': { 'branch': 'main',
             'longreadtools.isomatrix_tools': { 'longreadtools.isomatrix_tools.download_test_data': ( 'isomatrix_tools.html#download_test_data',
                                                                                                      'longreadtools/isomatrix_tools.py'),
                                                'longreadtools.isomatrix_tools.isomatrix_to_anndata': ( 'isomatrix_tools.html#isomatrix_to_anndata',
-                                                                                                       'longreadtools/isomatrix_tools.py'),
-                                               'longreadtools.isomatrix_tools.test_isomatrix_to_anndata': ( 'isomatrix_tools.html#test_isomatrix_to_anndata',
-                                                                                                            'longreadtools/isomatrix_tools.py')}}}
+                                                                                                       'longreadtools/isomatrix_tools.py')}}}

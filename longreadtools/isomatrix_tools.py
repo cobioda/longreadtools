@@ -84,7 +84,7 @@ def isomatrix_to_anndata(file_path:str,  # The path to the isomatrix csv file to
     
     return anndata
 
-# %% ../nbs/Isomatrix_tools.ipynb 5
+# %% ../nbs/Isomatrix_tools.ipynb 9
 def test_isomatrix_to_anndata():
     # Test with a known file
     test_file = download_test_data()
@@ -100,5 +100,5 @@ def test_isomatrix_to_anndata():
     assert 'geneId' in anndata.var, "The 'geneId' is not in the var of the AnnData object."
     assert 'transcriptId' in anndata.var, "The 'transcriptId' is not in the var of the AnnData object."
 
-test_isomatrix_to_anndata()
+
 

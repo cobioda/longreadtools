@@ -5,4 +5,4 @@ d = { 'settings': { 'branch': 'main',
                 'doc_host': 'https://cobioda.github.io',
                 'git_url': 'https://github.com/cobioda/longreadtools',
                 'lib_path': 'longreadtools'},
-  'syms': {'longreadtools.core': {'longreadtools.core.foo': ('core.html#foo', 'longreadtools/core.py')}}}
+  'syms': {'longreadtools.core': {'longreadtools.core.foo': ('isomatrix_tools.html#foo', 'longreadtools/core.py')}}}

@@ -90,12 +90,12 @@ def download_test_data() -> str: #The absolute path of the extracted file 'sampl
 import numpy as np 
 from pandas import DataFrame
 
-def simulate_isomatrix(num_genes, # int, number of genes (groups of rows)
-                       num_transcripts_per_gene, # int, number of transcripts per gene
-                       num_samples, # int, number of samples (columns)
-                       sparsity=0.95, # float, fraction of zeros in the data (default 0.95)
-                       max_expression=100, # int, maximum expression level for any transcript in any sample
-                       seed=0 # int, random seed for reproducibility
+def simulate_isomatrix(num_genes: int, # number of genes (groups of rows)
+                       num_transcripts_per_gene: int, # number of transcripts per gene
+                       num_samples: int, # number of samples (columns)
+                       sparsity: float = 0.95, # fraction of zeros in the data (default 0.95)
+                       max_expression: int = 100, # maximum expression level for any transcript in any sample
+                       seed: int = 0 # random seed for reproducibility
                       ) -> DataFrame : # DataFrame with simulated transcript expression data for demonstration purposes.
     """
     Simulate transcript expression data to match the structure of the first image provided by the user.
@@ -131,22 +131,24 @@ def simulate_isomatrix(num_genes, # int, number of genes (groups of rows)
     
     return df
 
-import os
 
 
 
 
 # %% ../nbs/Isomatrix_tools.ipynb 14
-def simulate_and_save_isomatrices(num_isomatrix, # int, number of isomatrix to generate
-                                num_genes, # int, number of genes (groups of rows)
-                                num_transcripts_per_gene, # int, number of transcripts per gene
-                                num_samples, # int, number of samples (columns)
-                                sparsity=0.95, # float, fraction of zeros in the data (default 0.95)
-                                max_expression=100, # int, maximum expression level for any transcript in any sample
-                                seed=0, # int, random seed for reproducibility
-                                output_dir='./', # str, directory to save the generated isomatrix txt files
-                                return_paths=False # bool, return paths to the isomatrixs as a list of strings if True
-                               ) -> list:
+import os
+def simulate_and_save_isomatrices(num_isomatrix: int, #number of isomatrix to generate
+                                num_genes: int, # number of genes (groups of rows)
+                                num_transcripts_per_gene: int, # number of transcripts per gene
+                                num_samples: int, # number of samples (columns)
+                                sparsity: float = 0.95, # fraction of zeros in the data (default 0.95)
+                                max_expression: int = 100, # maximum expression level for any transcript in any sample
+                                seed: int = 0, # random seed for reproducibility
+                                output_dir: str = './', # directory to save the generated isomatrix txt files
+                                return_paths: bool = False, # return paths to the isomatrixs as a list of strings if True
+                                verbose: bool = False # print progress messages if True
+                               ) -> list: # list of paths for the simulated matrices (if return is set True)
+    
     """
     Simulate multiple isomatrix and save them as txt files in the specified directory.
     If return_paths is True, return a list of paths to the saved isomatrix files.
@@ -163,7 +165,8 @@ def simulate_and_save_isomatrices(num_isomatrix, # int, number of isomatrix to g
         output_file = os.path.join(output_dir, f'isomatrix_{i+1}.txt')
         df.to_csv(output_file, sep='\t')
         
-        print(f'Isomatrix {i+1} saved to {output_file}')
+        if verbose:
+            print(f'Isomatrix {i+1} saved to {output_file}')
         output_files.append(output_file)
     
     if return_paths:
@@ -177,18 +180,32 @@ def convert_and_save_file(sample, verbose):
         print(f"File {sample.replace('.txt', '.h5ad')} was successfully written to disk.")
 
 # %% ../nbs/Isomatrix_tools.ipynb 16
+def convert_and_save_file(sample, verbose):
+    anndata = isomatrix_to_anndata(sample)
+    h5ad_file = sample.replace('.txt', '.h5ad')
+    anndata.write_h5ad(h5ad_file)
+    if verbose:
+        print(f"File {h5ad_file} was successfully written to disk.")
+    return h5ad_file
+
+# %% ../nbs/Isomatrix_tools.ipynb 17
 from multiprocessing import Pool
 import os
 from functools import partial
 
 
 def multiple_isomatrix_conversion(file_paths: list, # A list of file paths to be converted.
-                                  verbose: bool = False # If True, print progress messages.
-                                  ):
+                                  verbose: bool = False, # If True, print progress messages.
+                                  return_paths: bool = False # If True, return a list of paths to the converted files.
+                                  ) -> list: # A list of paths to the converted files.
     """
     This function takes a list of file paths, converts each file from isomatrix to anndata format, 
     and saves the converted file in the same location with the same name but with a .h5ad extension.
+    If return_paths is True, it returns a list of paths to the converted files.
     """
     with Pool() as p:
-        p.map(partial(convert_and_save_file, verbose=verbose), file_paths)
+        converted_files = p.map(partial(convert_and_save_file, verbose=verbose), file_paths)
+    
+    if return_paths:
+        return converted_files
 

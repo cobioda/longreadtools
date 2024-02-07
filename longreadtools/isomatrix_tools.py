@@ -2,7 +2,8 @@
 
 # %% auto 0
 __all__ = ['isomatrix_to_anndata', 'download_test_data', 'simulate_isomatrix', 'simulate_and_save_isomatrices',
-           'convert_and_save_file', 'multiple_isomatrix_conversion']
+           'convert_and_save_file', 'multiple_isomatrix_conversion', 'load_and_set_var_names',
+           'feature_set_standardization', 'concatenate_anndata']
 
 # %% ../nbs/Isomatrix_tools.ipynb 3
 import pandas as pd
@@ -118,7 +119,7 @@ def simulate_isomatrix(num_genes: int, # number of genes (groups of rows)
     data = np.ceil(data * max_expression).astype(int)
     
     # Generate transcript and sample labels
-    transcript_ids = [f"ENSMUST00000{str(i).zfill(6)}.1" for i in range(1, total_transcripts + 1)]
+    transcript_ids = [f"ENSMUST00000{str(i).zfill(6)}_{str(j).zfill(6)}_{str(seed).zfill(6)}.1" for j in range(num_genes) for i in range(1, num_transcripts_per_gene + 1)]
     gene_ids = [f"Gene_{(i // num_transcripts_per_gene) + 1}" for i in range(total_transcripts)]
     nb_exons = np.random.randint(1, 21, total_transcripts)  # Assuming 1-20 exons based on typical gene structures
     sample_ids = [f"CACCTACACGTCAAC{str(i).zfill(2)}" for i in range(1, num_samples + 1)]
@@ -130,9 +131,6 @@ def simulate_isomatrix(num_genes: int, # number of genes (groups of rows)
     df.insert(1, 'nbExons', nb_exons)
     
     return df
-
-
-
 
 
 # %% ../nbs/Isomatrix_tools.ipynb 14
@@ -175,20 +173,13 @@ def simulate_and_save_isomatrices(num_isomatrix: int, #number of isomatrix to ge
 # %% ../nbs/Isomatrix_tools.ipynb 15
 def convert_and_save_file(sample, verbose):
     anndata = isomatrix_to_anndata(sample)
-    anndata.write_h5ad(sample.replace('.txt', '.h5ad'))
-    if verbose:
-        print(f"File {sample.replace('.txt', '.h5ad')} was successfully written to disk.")
-
-# %% ../nbs/Isomatrix_tools.ipynb 16
-def convert_and_save_file(sample, verbose):
-    anndata = isomatrix_to_anndata(sample)
     h5ad_file = sample.replace('.txt', '.h5ad')
     anndata.write_h5ad(h5ad_file)
     if verbose:
         print(f"File {h5ad_file} was successfully written to disk.")
     return h5ad_file
 
-# %% ../nbs/Isomatrix_tools.ipynb 17
+# %% ../nbs/Isomatrix_tools.ipynb 16
 from multiprocessing import Pool
 import os
 from functools import partial
@@ -208,4 +199,121 @@ def multiple_isomatrix_conversion(file_paths: list, # A list of file paths to be
     
     if return_paths:
         return converted_files
+
+
+# %% ../nbs/Isomatrix_tools.ipynb 19
+from joblib import Parallel, delayed
+from tqdm import tqdm
+
+def load_and_set_var_names(path):
+    dataset = sc.read_h5ad(path, backed='r')  # Read the file in 'backed' mode to avoid loading the whole data into memory
+    dataset.var_names = dataset.var['transcriptId']
+    return dataset
+
+# %% ../nbs/Isomatrix_tools.ipynb 23
+def feature_set_standardization(adatas:list, # list of AnnData objects or paths to AnnData files
+                                standardization_method:str = 'union' # str specifiying method to use union or intersection
+                                ) -> list: # list of anndata objects with the features standardised 
+    """
+    Standardize the feature sets of multiple AnnData objects.
+    
+    This function takes a list of AnnData objects or paths to AnnData files and a standardization method as input.
+    The standardization method can be either 'union' or 'intersection'.
+    If 'union' is chosen, the function will create a union of all features across all AnnData objects.
+    If 'intersection' is chosen, the function will create an intersection of all features across all AnnData objects.
+    The function returns a list of standardized AnnData objects.
+    """
+    # Check if the first element in adatas is a string
+    if isinstance(adatas[0], str):
+        # If it is, load anndata objects from paths
+        adatas = Parallel(n_jobs=-1)(delayed(load_and_set_var_names)(path) for path in adatas)
+
+    all_features = set()
+    common_features = set()
+    
+    # Get union or intersection of all feature sets across all AnnData objects
+    if standardization_method == 'union':
+        all_features = set().union(*[set(adata.var.itertuples(index=False, name=None)) for adata in adatas])
+    elif standardization_method == 'intersection':
+        common_features = set.intersection(*[set(adata.var['transcriptId']) for adata in adatas])
+    else:
+        raise ValueError("standardization_method should be 'union' or 'intersection'")
+    
+
+    standardized_adatas = []
+    # Iterate over each AnnData object
+    for dataset in tqdm(adatas, desc= f"Standardizing anndata features via {standardization_method}"):
+        dataset.var_names = dataset.var['transcriptId']
+        existing_var = dataset.var
+        # Identify features that are in the union/intersection but not in the current AnnData object
+        missing_features = all_features - set(dataset.var.itertuples(index=False, name=None))
+        if standardization_method == 'union':
+            if missing_features:
+                # Create a DataFrame of zeros with rows equal to the number of observations in the current AnnData object
+                # and columns equal to the number of missing features
+                zero_data = np.zeros((dataset.n_obs, len(missing_features)), dtype=object)
+                zero_df = pd.DataFrame(zero_data, index=dataset.obs_names, columns=pd.Index([t[1] for t in missing_features], name='transcriptId'))
+
+                # Merge the zero_df with the dataset's .to_df() DataFrame along the columns
+                combined_df = pd.concat([dataset.to_df(), zero_df], axis=1)
+
+                # Convert the combined DataFrame back to an AnnData object
+                combined_data = sc.AnnData(combined_df, obs=dataset.obs, var=pd.DataFrame(index=combined_df.columns))
+
+                missing_df = pd.DataFrame(list(missing_features), columns=['geneId', 'transcriptId', 'nbExons'])
+                missing_df.set_index('transcriptId', inplace=True)
+
+                combined_data.var = pd.concat([existing_var, missing_df], axis=0)
+                combined_data.var['transcriptId'] = combined_data.var_names
+                standardized_adatas.append(combined_data)
+            else:
+                # If no features are missing, append the dataset as is
+                standardized_adatas.append(dataset)
+        elif standardization_method == 'intersection':
+            # Subset the dataset to only include transcriptIds that are in the intersection
+            dataset = dataset[:, dataset.var_names.isin(common_features)]
+            standardized_adatas.append(dataset)
+    return standardized_adatas
+
+
+# %% ../nbs/Isomatrix_tools.ipynb 26
+import anndata as ad
+
+def concatenate_anndata(h5ad_inputs: list, # A list of AnnData objects or paths to .h5ad files.
+                         standardization_method='union' # The method to standardize the feature sets across all AnnData objects. It can be either 'union' or 'intersection'. Default is 'union'.
+                         ) -> AnnData: # The concatenated AnnData object.
+    """
+    This function concatenates multiple AnnData objects into a single AnnData object.
+    """
+    
+    # Check if inputs are paths or actual anndata objects
+    if isinstance(h5ad_inputs[0], str):
+        # If inputs are paths, read the .h5ad files and generate batch keys based on the directory names
+        to_concat = [sc.read_h5ad(input, backed='r') for input in h5ad_inputs]
+        batch_keys = [os.path.basename(os.path.dirname(input)) for input in h5ad_inputs]
+    else:
+        # If inputs are AnnData objects, use them directly and generate unique batch keys for each dataset
+        to_concat = h5ad_inputs
+        batch_keys = [f"batch_{i}" for i, adata in enumerate(h5ad_inputs)]
+
+    # Apply feature set standardization
+    to_concat = feature_set_standardization(to_concat, standardization_method)
+
+    # Ensure unique keys for concatenation
+    if len(batch_keys) != len(set(batch_keys)):
+        # If batch keys are not unique, create new unique batch keys
+        batch_keys = [f"batch_{i}" for i in range(len(to_concat))]
+
+    # Concatenate anndata objects
+    concat_anndata = ad.concat(
+        to_concat,
+        join="outer",
+        label='batch',
+        keys=batch_keys,
+    )
+
+    # Set the .var attribute of the concatenated AnnData object to be the same as the first input AnnData object
+    concat_anndata.var = to_concat[0].var
+
+    return concat_anndata
 

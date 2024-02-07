@@ -171,13 +171,23 @@ def simulate_and_save_isomatrices(num_isomatrix: int, #number of isomatrix to ge
         return output_files
 
 # %% ../nbs/Isomatrix_tools.ipynb 15
+import os
+
 def convert_and_save_file(sample, verbose):
     anndata = isomatrix_to_anndata(sample)
     h5ad_file = sample.replace('.txt', '.h5ad')
+    
+    # Check if the file already exists and delete it if it does
+    if os.path.exists(h5ad_file):
+        os.remove(h5ad_file)
+    
     anndata.write_h5ad(h5ad_file)
+    
     if verbose:
         print(f"File {h5ad_file} was successfully written to disk.")
+    
     return h5ad_file
+
 
 # %% ../nbs/Isomatrix_tools.ipynb 16
 from multiprocessing import Pool
@@ -226,7 +236,7 @@ def feature_set_standardization(adatas:list, # list of AnnData objects or paths 
     # Check if the first element in adatas is a string
     if isinstance(adatas[0], str):
         # If it is, load anndata objects from paths
-        adatas = Parallel(n_jobs=-1)(delayed(load_and_set_var_names)(path) for path in adatas)
+        adatas = [load_and_set_var_names(path) for path in adatas]
 
     all_features = set()
     common_features = set()

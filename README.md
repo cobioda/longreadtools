@@ -55,90 +55,23 @@ isomatrix_paths = [os.path.join(run, f'{os.path.basename(run)}_isomatrix.txt') f
     ['/data/analysis/data_mcandrew/000-sclr-discovair/D498_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D492_BIOP_NAS', '/data/analysis/data_mcandrew/000-sclr-discovair/D494_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D500_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D494_BIOP_NAS', '/data/analysis/data_mcandrew/000-sclr-discovair/D496_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D499_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D493_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D493_BIOP_NAS', '/data/analysis/data_mcandrew/000-sclr-discovair/D534_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D490_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D500_BIOP_NAS', '/data/analysis/data_mcandrew/000-sclr-discovair/D495_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D492_BIOP_INT']
 
 ``` python
-converted_isomatrix_paths = multiple_isomatrix_conversion(isomatrix_paths, verbose=True, return_paths = True)
+converted_isomatrix_paths = multiple_isomatrix_conversion(isomatrix_paths, verbose=True, return_paths = True, sparse=True)
 ```
 
-    File /data/analysis/data_mcandrew/000-sclr-discovair/D498_BIOP_INT/D498_BIOP_INT_isomatrix.h5ad was successfully written to disk.
-    File /data/analysis/data_mcandrew/000-sclr-discovair/D500_BIOP_NAS/D500_BIOP_NAS_isomatrix.h5ad was successfully written to disk.
-    File /data/analysis/data_mcandrew/000-sclr-discovair/D500_BIOP_INT/D500_BIOP_INT_isomatrix.h5ad was successfully written to disk.
-    File /data/analysis/data_mcandrew/000-sclr-discovair/D493_BIOP_NAS/D493_BIOP_NAS_isomatrix.h5ad was successfully written to disk.
-    File /data/analysis/data_mcandrew/000-sclr-discovair/D494_BIOP_NAS/D494_BIOP_NAS_isomatrix.h5ad was successfully written to disk.
-    File /data/analysis/data_mcandrew/000-sclr-discovair/D493_BIOP_INT/D493_BIOP_INT_isomatrix.h5ad was successfully written to disk.
-    File /data/analysis/data_mcandrew/000-sclr-discovair/D499_BIOP_INT/D499_BIOP_INT_isomatrix.h5ad was successfully written to disk.
-    File /data/analysis/data_mcandrew/000-sclr-discovair/D494_BIOP_INT/D494_BIOP_INT_isomatrix.h5ad was successfully written to disk.
-    File /data/analysis/data_mcandrew/000-sclr-discovair/D495_BIOP_INT/D495_BIOP_INT_isomatrix.h5ad was successfully written to disk.
-    File /data/analysis/data_mcandrew/000-sclr-discovair/D490_BIOP_INT/D490_BIOP_INT_isomatrix.h5ad was successfully written to disk.
-    File /data/analysis/data_mcandrew/000-sclr-discovair/D492_BIOP_INT/D492_BIOP_INT_isomatrix.h5ad was successfully written to disk.
-    File /data/analysis/data_mcandrew/000-sclr-discovair/D496_BIOP_INT/D496_BIOP_INT_isomatrix.h5ad was successfully written to disk.
-    File /data/analysis/data_mcandrew/000-sclr-discovair/D534_BIOP_INT/D534_BIOP_INT_isomatrix.h5ad was successfully written to disk.
-    File /data/analysis/data_mcandrew/000-sclr-discovair/D492_BIOP_NAS/D492_BIOP_NAS_isomatrix.h5ad was successfully written to disk.
+    TypeError: multiple_isomatrix_conversion() got an unexpected keyword argument 'sparse'
 
 ``` python
 converted_isomatrix_paths
 ```
 
-    ['/data/analysis/data_mcandrew/000-sclr-discovair/D498_BIOP_INT/D498_BIOP_INT_isomatrix.h5ad',
-     '/data/analysis/data_mcandrew/000-sclr-discovair/D492_BIOP_NAS/D492_BIOP_NAS_isomatrix.h5ad',
-     '/data/analysis/data_mcandrew/000-sclr-discovair/D494_BIOP_INT/D494_BIOP_INT_isomatrix.h5ad',
-     '/data/analysis/data_mcandrew/000-sclr-discovair/D500_BIOP_INT/D500_BIOP_INT_isomatrix.h5ad',
-     '/data/analysis/data_mcandrew/000-sclr-discovair/D494_BIOP_NAS/D494_BIOP_NAS_isomatrix.h5ad',
-     '/data/analysis/data_mcandrew/000-sclr-discovair/D496_BIOP_INT/D496_BIOP_INT_isomatrix.h5ad',
-     '/data/analysis/data_mcandrew/000-sclr-discovair/D499_BIOP_INT/D499_BIOP_INT_isomatrix.h5ad',
-     '/data/analysis/data_mcandrew/000-sclr-discovair/D493_BIOP_INT/D493_BIOP_INT_isomatrix.h5ad',
-     '/data/analysis/data_mcandrew/000-sclr-discovair/D493_BIOP_NAS/D493_BIOP_NAS_isomatrix.h5ad',
-     '/data/analysis/data_mcandrew/000-sclr-discovair/D534_BIOP_INT/D534_BIOP_INT_isomatrix.h5ad',
-     '/data/analysis/data_mcandrew/000-sclr-discovair/D490_BIOP_INT/D490_BIOP_INT_isomatrix.h5ad',
-     '/data/analysis/data_mcandrew/000-sclr-discovair/D500_BIOP_NAS/D500_BIOP_NAS_isomatrix.h5ad',
-     '/data/analysis/data_mcandrew/000-sclr-discovair/D495_BIOP_INT/D495_BIOP_INT_isomatrix.h5ad',
-     '/data/analysis/data_mcandrew/000-sclr-discovair/D492_BIOP_INT/D492_BIOP_INT_isomatrix.h5ad']
-
 ``` python
 andata_concat = concatenate_anndata(converted_isomatrix_paths)
 ```
-
-    Standardizing anndata features via union: 100%|██████████| 14/14 [09:10<00:00, 39.34s/it]
-    /home/mcandrew/.conda/envs/scLRanalyis/lib/python3.11/site-packages/anndata/_core/anndata.py:1897: UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
-      utils.warn_names_duplicates("obs")
 
 ``` python
 andata_concat
 ```
 
-    AnnData object with n_obs × n_vars = 122872 × 89177
-        obs: 'batch'
-        var: 'geneId', 'transcriptId', 'nbExons'
-
 ``` python
 andata_concat.var
 ```
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-&#10;    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-&#10;    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-
-|                 | geneId       | transcriptId    | nbExons |
-|-----------------|--------------|-----------------|---------|
-| transcriptId    |              |                 |         |
-| ENST00000548501 | CYP4F12      | ENST00000548501 | 4       |
-| ENST00000324229 | CALCB        | ENST00000324229 | 5       |
-| ENST00000371489 | MYOF         | ENST00000371489 | 15      |
-| ENST00000368659 | SLC27A3      | ENST00000368659 | 2       |
-| ENST00000669353 | TMEM161B-AS1 | ENST00000669353 | 4       |
-| ...             | ...          | ...             | ...     |
-| ENST00000597528 | ZNF274       | ENST00000597528 | 3       |
-| ENST00000624896 | PCDHB14      | ENST00000624896 | 2       |
-| ENST00000453216 | TRAM2-AS1    | ENST00000453216 | 3       |
-| ENST00000589481 | ZNF532       | ENST00000589481 | 4       |
-| ENST00000543571 | LATS1        | ENST00000543571 | 8       |
-
-<p>89177 rows × 3 columns</p>
-</div>

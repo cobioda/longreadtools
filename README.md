@@ -8,9 +8,9 @@
 ```
 
     Collecting git+https://github.com/cobioda/longreadtools.git
-      Cloning https://github.com/cobioda/longreadtools.git to /tmp/pip-req-build-nd3o4s76
-      Running command git clone --filter=blob:none --quiet https://github.com/cobioda/longreadtools.git /tmp/pip-req-build-nd3o4s76
-      Resolved https://github.com/cobioda/longreadtools.git to commit 73c93ade1ebe317512d46be555619ecfc2200415
+      Cloning https://github.com/cobioda/longreadtools.git to /tmp/pip-req-build-z2c6y2in
+      Running command git clone --filter=blob:none --quiet https://github.com/cobioda/longreadtools.git /tmp/pip-req-build-z2c6y2in
+      Resolved https://github.com/cobioda/longreadtools.git to commit 0ba4cadf37a7fe88184d760e8f57a1aab4909a2b
       Preparing metadata (setup.py) ... done
     Requirement already satisfied: scanpy in /home/mcandrew/.conda/envs/scLRanalyis/lib/python3.11/site-packages (from longreadtools==0.0.1) (1.9.4)
     Requirement already satisfied: numpy in /home/mcandrew/.conda/envs/scLRanalyis/lib/python3.11/site-packages (from longreadtools==0.0.1) (1.24.4)
@@ -49,8 +49,8 @@
     Requirement already satisfied: stdlib-list in /home/mcandrew/.conda/envs/scLRanalyis/lib/python3.11/site-packages (from session-info->scanpy->longreadtools==0.0.1) (0.9.0)
     Building wheels for collected packages: longreadtools
       Building wheel for longreadtools (setup.py) ... done
-      Created wheel for longreadtools: filename=longreadtools-0.0.1-py3-none-any.whl size=13063 sha256=8176a20415208d42dacb5f4d7f19f2138bb40a07187f65c1b9b4dbd9997eaa49
-      Stored in directory: /tmp/pip-ephem-wheel-cache-ctkjx3e0/wheels/97/39/f0/7fa380bf9faac6a2cc85d6ca66b9e893d85e5c72c5eab2d983
+      Created wheel for longreadtools: filename=longreadtools-0.0.1-py3-none-any.whl size=14417 sha256=91f91b9250851702e4cec2f90580daf00e8aebc548592f15fa46ba4b5f674e15
+      Stored in directory: /tmp/pip-ephem-wheel-cache-edd_7t1e/wheels/97/39/f0/7fa380bf9faac6a2cc85d6ca66b9e893d85e5c72c5eab2d983
     Successfully built longreadtools
     Installing collected packages: longreadtools
     Successfully installed longreadtools-0.0.1
@@ -126,12 +126,10 @@ converted_isomatrix_paths = multiple_isomatrix_conversion(isomatrix_paths, verbo
     File /data/analysis/data_mcandrew/000-sclr-discovair/D492_BIOP_NAS/D492_BIOP_NAS_isomatrix.h5ad was successfully written to disk.
 
 ``` python
-andata_concat = concatenate_anndata(converted_isomatrix_paths, sparse = True)
+andata_concat = concatenate_anndata(converted_isomatrix_paths, sparse =True, verbose = True)
 ```
 
-    Standardizing anndata features via union: 100%|██████████| 14/14 [09:56<00:00, 42.57s/it]
-    /home/mcandrew/.conda/envs/scLRanalyis/lib/python3.11/site-packages/anndata/_core/anndata.py:1897: UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
-      utils.warn_names_duplicates("obs")
+    Standardizing anndata features via union: 100%|██████████| 14/14 [10:09<00:00, 43.52s/it]
 
 ``` python
 andata_concat
@@ -142,5 +140,5 @@ andata_concat.var
 ```
 
 ``` python
-concatenate_anndata.write_h5ad('discovair_long_read_transcript_matrix')
+concatenate_anndata.write_h5ad('discovair_long_read_transcript_matrix.h5ad')
 ```

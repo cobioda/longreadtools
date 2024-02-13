@@ -335,6 +335,7 @@ def concatenate_anndata(h5ad_inputs: list, # A list of AnnData objects or paths 
         join="outer",
         label='batch',
         keys=batch_keys,
+        index_unique=None  # This will speed up the concatenation process by not checking for unique indices
     )
 
     # Set the .var attribute of the concatenated AnnData object to be the same as the first input AnnData object

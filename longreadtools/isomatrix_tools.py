@@ -172,21 +172,33 @@ def simulate_and_save_isomatrices(num_isomatrix: int, #number of isomatrix to ge
 
 # %% ../nbs/Isomatrix_tools.ipynb 15
 import os
+import time
 
-def convert_and_save_file(sample, verbose):
-    anndata = isomatrix_to_anndata(sample)
+def convert_and_save_file(sample, verbose, sparse=False):
+    anndata = isomatrix_to_anndata(sample, sparse=sparse)
     h5ad_file = sample.replace('.txt', '.h5ad')
     
     # Check if the file already exists and delete it if it does
     if os.path.exists(h5ad_file):
         os.remove(h5ad_file)
     
-    anndata.write_h5ad(h5ad_file)
+    # Add a delay and retry mechanism to handle file locking issues
+    for attempt in range(10):
+        try:
+            anndata.write_h5ad(h5ad_file)
+            break
+        except BlockingIOError:
+            if attempt < 9:  # i.e. if this is not the last attempt
+                time.sleep(1)  # wait for 1 second before the next attempt
+            else:
+                raise  # re-raise the last exception if all attempts fail
     
     if verbose:
         print(f"File {h5ad_file} was successfully written to disk.")
     
     return h5ad_file
+
+
 
 
 # %% ../nbs/Isomatrix_tools.ipynb 16
@@ -197,19 +209,20 @@ from functools import partial
 
 def multiple_isomatrix_conversion(file_paths: list, # A list of file paths to be converted.
                                   verbose: bool = False, # If True, print progress messages.
-                                  return_paths: bool = False # If True, return a list of paths to the converted files.
+                                  return_paths: bool = False, # If True, return a list of paths to the converted files.
+                                  sparse: bool = False # If True, the anndata object will be stored in sparse format.
                                   ) -> list: # A list of paths to the converted files.
     """
     This function takes a list of file paths, converts each file from isomatrix to anndata format, 
     and saves the converted file in the same location with the same name but with a .h5ad extension.
     If return_paths is True, it returns a list of paths to the converted files.
+    If sparse is True, the anndata object will be stored in sparse format.
     """
     with Pool() as p:
-        converted_files = p.map(partial(convert_and_save_file, verbose=verbose), file_paths)
+        converted_files = p.map(partial(convert_and_save_file, verbose=verbose, sparse=sparse), file_paths)
     
     if return_paths:
         return converted_files
-
 
 # %% ../nbs/Isomatrix_tools.ipynb 19
 from joblib import Parallel, delayed

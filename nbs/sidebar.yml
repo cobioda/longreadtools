@@ -4,3 +4,4 @@ website:
       - index.ipynb
       - Isomatrix_tools.ipynb
       - tests.ipynb
+      - transfer_annotations.ipynb

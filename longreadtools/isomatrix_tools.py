@@ -305,7 +305,8 @@ from scipy.sparse import csr_matrix
 
 def concatenate_anndata(h5ad_inputs: list, # A list of AnnData objects or paths to .h5ad files.
                          standardization_method='union', # The method to standardize the feature sets across all AnnData objects. It can be either 'union' or 'intersection'. Default is 'union'.
-                         sparse=False # Optional flag to convert the final matrix to sparse. Default is False.
+                         sparse=False, # Optional flag to convert the final matrix to sparse. Default is False.
+                         verbose=False # Optional flag to print progress updates. Default is False.
                          ) -> AnnData: # The concatenated AnnData object.
     """
     This function concatenates multiple AnnData objects into a single AnnData object.
@@ -313,23 +314,28 @@ def concatenate_anndata(h5ad_inputs: list, # A list of AnnData objects or paths 
     
     # Check if inputs are paths or actual anndata objects
     if isinstance(h5ad_inputs[0], str):
+        if verbose: print("Reading .h5ad files...")
         # If inputs are paths, read the .h5ad files and generate batch keys based on the directory names
         to_concat = [sc.read_h5ad(input, backed='r') for input in h5ad_inputs]
         batch_keys = [os.path.basename(os.path.dirname(input)) for input in h5ad_inputs]
     else:
+        if verbose: print("Processing AnnData objects...")
         # If inputs are AnnData objects, use them directly and generate unique batch keys for each dataset
         to_concat = h5ad_inputs
         batch_keys = [f"batch_{i}" for i, adata in enumerate(h5ad_inputs)]
 
     # Apply feature set standardization
+    if verbose: print("Applying feature set standardization...")
     to_concat = feature_set_standardization(to_concat, standardization_method)
 
     # Ensure unique keys for concatenation
     if len(batch_keys) != len(set(batch_keys)):
+        if verbose: print("Generating unique batch keys...")
         # If batch keys are not unique, create new unique batch keys
         batch_keys = [f"batch_{i}" for i in range(len(to_concat))]
 
     # Concatenate anndata objects
+    if verbose: print("Concatenating AnnData objects...")
     concat_anndata = ad.concat(
         to_concat,
         join="outer",
@@ -339,11 +345,14 @@ def concatenate_anndata(h5ad_inputs: list, # A list of AnnData objects or paths 
     )
 
     # Set the .var attribute of the concatenated AnnData object to be the same as the first input AnnData object
+    if verbose: print("Setting .var attribute...")
     concat_anndata.var = to_concat[0].var
 
     # If the sparse flag is True, convert the final matrix to sparse
     if sparse:
-        concat_anndata.X = csr_matrix(concat_anndata.X)
+        if verbose: print("Converting matrix to sparse...")
+        concat_anndata.X = concat_anndata.X.tocsr(copy=False)
 
+    if verbose: print("Concatenation complete.")
     return concat_anndata
 

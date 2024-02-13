@@ -304,7 +304,8 @@ import anndata as ad
 from scipy.sparse import csr_matrix
 
 def concatenate_anndata(h5ad_inputs: list, # A list of AnnData objects or paths to .h5ad files.
-                         standardization_method='union' # The method to standardize the feature sets across all AnnData objects. It can be either 'union' or 'intersection'. Default is 'union'.
+                         standardization_method='union', # The method to standardize the feature sets across all AnnData objects. It can be either 'union' or 'intersection'. Default is 'union'.
+                         sparse=False # Optional flag to convert the final matrix to sparse. Default is False.
                          ) -> AnnData: # The concatenated AnnData object.
     """
     This function concatenates multiple AnnData objects into a single AnnData object.
@@ -339,8 +340,8 @@ def concatenate_anndata(h5ad_inputs: list, # A list of AnnData objects or paths 
     # Set the .var attribute of the concatenated AnnData object to be the same as the first input AnnData object
     concat_anndata.var = to_concat[0].var
 
-    # Check if the original matrices were sparse, if so convert the final matrix to sparse
-    if isinstance(to_concat[0].X, csr_matrix):
+    # If the sparse flag is True, convert the final matrix to sparse
+    if sparse:
         concat_anndata.X = csr_matrix(concat_anndata.X)
 
     return concat_anndata

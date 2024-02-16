@@ -3,7 +3,7 @@
 # %% auto 0
 __all__ = ['isomatrix_to_anndata', 'download_test_data', 'simulate_isomatrix', 'simulate_and_save_isomatrices',
            'convert_and_save_file', 'multiple_isomatrix_conversion', 'load_and_set_var_names',
-           'feature_set_standardization', 'concatenate_anndata']
+           'feature_set_standardization', 'prepare_anndata_for_saving', 'make_unique_batch_keys', 'concatenate_anndata']
 
 # %% ../nbs/Isomatrix_tools.ipynb 3
 import pandas as pd
@@ -13,8 +13,8 @@ from scipy.sparse import csr_matrix
 import warnings
 
 def isomatrix_to_anndata(file_path:str,  # The path to the isomatrix csv file to be read.
-                        sparse:bool=True  # Flag to determine if the output should be a sparse matrix.
-) -> AnnData: # The converted isomatrix as a scanpy compatible  anndata object
+                        sparse:bool=False  # Flag to determine if the output should be a sparse matrix.
+) -> AnnData: # The converted isomatrix as a scanpy compatible anndata object
     """
     This function converts an isomatrix txt file (SiCeLoRe output) into an AnnData object compatible with scanpy
 
@@ -28,9 +28,9 @@ def isomatrix_to_anndata(file_path:str,  # The path to the isomatrix csv file to
     df = df.reset_index()
     df = df.transpose()
     
-    # Extract the rows with 'gene_id', 'transcript_id', 'nb_exons' from the DataFrame
+    # Extract the rows with 'geneId', 'transcriptId', 'nbExons' from the DataFrame
     additional_info_rows = df.loc[df.index.intersection(['geneId', 'transcriptId', 'nbExons'])]
-    # Drop 'gene_id', 'transcript_id', 'nb_exons' rows from the DataFrame if they exist
+    # Drop 'geneId', 'transcriptId', 'nbExons' rows from the DataFrame if they exist
     df = df.drop(['geneId', 'transcriptId', 'nbExons'], errors='ignore')
 
     # Convert the DataFrame to a sparse matrix if the sparse flag is True
@@ -46,14 +46,18 @@ def isomatrix_to_anndata(file_path:str,  # The path to the isomatrix csv file to
     # Convert the matrix to an AnnData object
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        anndata = sc.AnnData(X=matrix, obs=pd.DataFrame(index=df.index), var=pd.DataFrame(index=df.columns))
+        # Ensure that the index and columns are converted to strings
+        obs_index_as_str = df.index.astype(str)
+        var_columns_as_str = df.columns.astype(str)
+        anndata = sc.AnnData(X=matrix, obs=pd.DataFrame(index=obs_index_as_str), var=pd.DataFrame(index=var_columns_as_str))
     
     # Add additional information to the AnnData object vars
     for info in ['geneId', 'transcriptId', 'nbExons']:
         if info in additional_info_rows.index:
-            anndata.var[info] = additional_info_rows.loc[info, :].values
-            if info == 'nbExons':
-                anndata.var[info] = anndata.var[info].astype('int32')
+            anndata.var[info] = additional_info_rows.loc[info, :].astype(str).values
+    
+    # Ensure unique observation names
+    anndata.obs_names_make_unique()
     
     return anndata
 
@@ -233,7 +237,7 @@ def load_and_set_var_names(path):
     dataset.var_names = dataset.var['transcriptId']
     return dataset
 
-# %% ../nbs/Isomatrix_tools.ipynb 23
+# %% ../nbs/Isomatrix_tools.ipynb 24
 def feature_set_standardization(adatas:list, # list of AnnData objects or paths to AnnData files
                                 standardization_method:str = 'union' # str specifiying method to use union or intersection
                                 ) -> list: # list of anndata objects with the features standardised 
@@ -250,7 +254,9 @@ def feature_set_standardization(adatas:list, # list of AnnData objects or paths 
     if isinstance(adatas[0], str):
         # If it is, load anndata objects from paths
         adatas = [load_and_set_var_names(path) for path in adatas]
-
+        for adata in adatas:
+            if isinstance(adata.X, csr_matrix):
+                adata.X = adata.X.toarray()
     all_features = set()
     common_features = set()
     
@@ -274,7 +280,7 @@ def feature_set_standardization(adatas:list, # list of AnnData objects or paths 
             if missing_features:
                 # Create a DataFrame of zeros with rows equal to the number of observations in the current AnnData object
                 # and columns equal to the number of missing features
-                zero_data = np.zeros((dataset.n_obs, len(missing_features)), dtype=object)
+                zero_data = np.zeros((dataset.n_obs, len(missing_features)), dtype=np.float32)
                 zero_df = pd.DataFrame(zero_data, index=dataset.obs_names, columns=pd.Index([t[1] for t in missing_features], name='transcriptId'))
 
                 # Merge the zero_df with the dataset's .to_df() DataFrame along the columns
@@ -298,61 +304,136 @@ def feature_set_standardization(adatas:list, # list of AnnData objects or paths 
             standardized_adatas.append(dataset)
     return standardized_adatas
 
-
 # %% ../nbs/Isomatrix_tools.ipynb 26
 import anndata as ad
+import numpy as np
 from scipy.sparse import csr_matrix
+import pandas as pd
+import os
+import uuid
+
+
+
+from scipy.sparse import issparse
+from anndata import AnnData
+import numpy as np
+
+def prepare_anndata_for_saving(adata: AnnData, verbose: bool = False):
+    # Function to check and convert data types in a DataFrame
+    def convert_df(df):
+        for col in df.columns:
+            if df[col].isnull().any():
+                if verbose:
+                    print(f"Missing values found in '{col}'. Filling with 'unknown' or median.")
+                if df[col].dtype == 'object' or df[col].dtype.name == 'category':
+                    df[col] = df[col].astype('category').cat.add_categories(['unknown']).fillna('unknown')
+                else:
+                    df[col] = df[col].fillna(df[col].median())
+            if df[col].dtype == 'object':
+                df[col] = df[col].astype(str)
+            if df[col].dtype.name == 'category':
+                df[col] = df[col].astype(str)
+    
+    if adata.var is not None and verbose:
+        print("Processing .var DataFrame")
+        convert_df(adata.var)
+    
+    if adata.obs is not None and verbose:
+        print("Processing .obs DataFrame")
+        convert_df(adata.obs)
+    
+    if not pd.api.types.is_string_dtype(adata.obs_names):
+        adata.obs_names = adata.obs_names.astype(str)
+    if not pd.api.types.is_string_dtype(adata.var_names):
+        adata.var_names = adata.var_names.astype(str)
+
+    if adata.obs_names.duplicated().any() and verbose:
+        print("Duplicate obs_names found, consider making them unique.")
+    if adata.var_names.duplicated().any() and verbose:
+        print("Duplicate var_names found, consider making them unique.")
+    
+    # Check if .X contains NaN values and handle if necessary, accounting for sparse matrices
+    if issparse(adata.X):
+        if np.isnan(adata.X.data).any() and verbose:
+            print("NaN values found in sparse .X data. Consider handling them.")
+            # Handle NaN values in sparse matrix data if necessary
+    else:
+        if np.isnan(adata.X).any() and verbose:
+            print("NaN values found in .X, consider handling them.")
+            # Handle NaN values in .X if necessary
+    
+    if verbose:
+        print("Preparation complete.")
+
+
+def make_unique_batch_keys(batch_keys):
+    unique_keys = set()
+    final_keys = []
+    for key in batch_keys:
+        original_key = key
+        counter = 1
+        while key in unique_keys:
+            key = f"{original_key}_{counter}"
+            counter += 1
+        unique_keys.add(key)
+        final_keys.append(key)
+    return final_keys
 
 def concatenate_anndata(h5ad_inputs: list, # A list of AnnData objects or paths to .h5ad files.
                          standardization_method='union', # The method to standardize the feature sets across all AnnData objects. It can be either 'union' or 'intersection'. Default is 'union'.
                          sparse=False, # Optional flag to convert the final matrix to sparse. Default is False.
                          verbose=False # Optional flag to print progress updates. Default is False.
-                         ) -> AnnData: # The concatenated AnnData object.
+                         ) -> ad.AnnData: # The concatenated AnnData object.
     """
-    This function concatenates multiple AnnData objects into a single AnnData object.
+    This function concatenates multiple AnnData objects into a single AnnData object and adds batch keys to identify the origin of each sample.
     """
     
     # Check if inputs are paths or actual anndata objects
     if isinstance(h5ad_inputs[0], str):
         if verbose: print("Reading .h5ad files...")
-        # If inputs are paths, read the .h5ad files and generate batch keys based on the directory names
-        to_concat = [sc.read_h5ad(input, backed='r') for input in h5ad_inputs]
+        to_concat = [ad.read_h5ad(input) for input in h5ad_inputs]
         batch_keys = [os.path.basename(os.path.dirname(input)) for input in h5ad_inputs]
     else:
         if verbose: print("Processing AnnData objects...")
-        # If inputs are AnnData objects, use them directly and generate unique batch keys for each dataset
         to_concat = h5ad_inputs
-        batch_keys = [f"batch_{i}" for i, adata in enumerate(h5ad_inputs)]
+        batch_keys = [os.path.basename(os.path.dirname(input)) for input in h5ad_inputs]
+
+    # Ensure batch keys are unique, append a UID if necessary
+    batch_keys = make_unique_batch_keys(batch_keys)
+
+    # If .X is sparse, convert to dense
+    for adata in to_concat:
+        if isinstance(adata.X, csr_matrix):
+            adata.X = adata.X.toarray()
 
     # Apply feature set standardization
     if verbose: print("Applying feature set standardization...")
     to_concat = feature_set_standardization(to_concat, standardization_method)
 
-    # Ensure unique keys for concatenation
-    if len(batch_keys) != len(set(batch_keys)):
-        if verbose: print("Generating unique batch keys...")
-        # If batch keys are not unique, create new unique batch keys
-        batch_keys = [f"batch_{i}" for i in range(len(to_concat))]
-
-    # Concatenate anndata objects
-    if verbose: print("Concatenating AnnData objects...")
-    concat_anndata = ad.concat(
-        to_concat,
-        join="outer",
-        label='batch',
-        keys=batch_keys,
-        index_unique=None  # This will speed up the concatenation process by not checking for unique indices
-    )
+    # Concatenate anndata objects with scanpy, specifying batch information
+    if verbose: print("Concatenating AnnData objects and adding batch keys with scanpy...")
+    concat_anndata = ad.concat(to_concat, join='outer', label='batch', keys=batch_keys)
 
     # Set the .var attribute of the concatenated AnnData object to be the same as the first input AnnData object
     if verbose: print("Setting .var attribute...")
     concat_anndata.var = to_concat[0].var
+    concat_anndata.var = concat_anndata.var.astype(str)
+    concat_anndata.obs = concat_anndata.obs.astype(str)
 
     # If the sparse flag is True, convert the final matrix to sparse
     if sparse:
         if verbose: print("Converting matrix to sparse...")
-        concat_anndata.X = concat_anndata.X.tocsr(copy=False)
+        try:
+            concat_anndata.X = csr_matrix(concat_anndata.X.astype(np.float32))
+        except Exception as e:
+            print(f"Error converting to sparse matrix: {e}")
+
+    # Convert the data to float32 to avoid TypeError when writing to .h5ad file
+    concat_anndata.X = concat_anndata.X.astype(np.float32)
+    
+    if verbose: print("Final Check...")
+    prepare_anndata_for_saving(concat_anndata)
+    
 
     if verbose: print("Concatenation complete.")
     return concat_anndata
-

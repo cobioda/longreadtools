@@ -20,6 +20,7 @@ import time
 from multiprocessing import Pool
 import os
 from functools import partial
+from scipy.sparse import issparse
 
 
 

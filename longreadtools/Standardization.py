@@ -7,18 +7,11 @@ __all__ = ['subset_common_cells', 'transfer_obs']
 import scanpy as sc
 
 
-def subset_common_cells(dataset1, dataset2):
-    """
-    Correctly subsets `dataset1` to only include cells that are also present in `dataset2`,
-    ensuring the result has at most as many cells as in the intersection.
+def subset_common_cells( dataset1:sc.AnnData,  # First dataset to be subsetted.
+                        dataset2:sc.AnnData   # Second dataset to compare with.
+                        ) -> sc.AnnData:  # Subset of `dataset1` containing only cells also found in `dataset2`.
     
-    Parameters:
-    - dataset1: AnnData object
-    - dataset2: AnnData object
-    
-    Returns:
-    - AnnData object: Subset of `dataset1` containing only cells also found in `dataset2`.
-    """
+    "Subset `dataset1` to only include cells that are also present in `dataset2`."
     # Find common cells by intersecting the cell identifiers of both datasets
     common_cells = dataset1.obs_names.intersection(dataset2.obs_names)
     
@@ -28,21 +21,16 @@ def subset_common_cells(dataset1, dataset2):
     return subset_dataset1
 
 
-# %% ../nbs/transfer_annotations.ipynb 5
+# %% ../nbs/transfer_annotations.ipynb 6
 import pandas as pd
 import anndata as ad
 
-def transfer_obs(dataset1, dataset2):
-    """
-    Transfers .obs metadata from dataset1 to dataset2 one by one. The .var DataFrame of dataset2 is preserved.
+#| export
+def transfer_obs(dataset1: ad.AnnData,  # Source AnnData object with .obs metadata to transfer.
+                 dataset2: ad.AnnData   # Target AnnData object to receive .obs metadata.
+                 ) -> ad.AnnData:       # The modified `dataset2` with .obs from `dataset1` transferred.
+    "Transfer `.obs` metadata from `dataset1` to `dataset2` one by one, while preserving the `.var` DataFrame of `dataset2`."
     
-    Parameters:
-    - dataset1: Source AnnData object with .obs metadata to transfer.
-    - dataset2: Target AnnData object to receive .obs metadata from dataset1, column by column.
-    
-    Returns:
-    - AnnData: The modified dataset2 with .obs from dataset1 transferred one by one and original .var preserved.
-    """
     # Ensure dataset2's .var is preserved without altering its contents
     var_dataset2 = dataset2.var.copy()
     

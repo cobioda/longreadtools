@@ -13,6 +13,17 @@ pip install git+https://github.com/cobioda/longreadtools.git
 
 ## How to use
 
+### For detailed instructions on how to use LongReadTools, please refer to the [documentation](https://cobioda.github.io/longreadtools/).
+
+# Example Usage of LongReadTools
+
+This section provides a practical example of how to apply LongReadTools
+in a bioinformatics workflow. We will demonstrate the process of
+converting isomatrix text files into Anndata objects, which are suitable
+for high-throughput single-cell genomics analysis. The example will
+cover the necessary steps from data retrieval and processing to the
+final conversion using LongReadTools’ specialized functions.
+
 Here we will use the `isomatrix_tools` module to convert our isomatrix
 txt files in bulk into `anndata` objects using the
 [`multiple_isomatrix_conversion`](https://cobioda.github.io/longreadtools/isomatrix_tools.html#multiple_isomatrix_conversion)
@@ -460,4 +471,4 @@ annotated_isoform_matrix
         obs: 'manip', 'donor', 'method', 'position', 'n_genes_by_counts', 'total_counts', 'total_counts_mt', 'pct_counts_mt', 'total_counts_ribo', 'pct_counts_ribo', 'louvain', 'n_genes', 'nCount_SCT', 'nFeature_SCT', 'batch', 'age', 'gender', 'phenotype', 'respifinder', 'TRACvsNAS', 'sixty_plus', 'smoker', 'smoking_years', 'leiden', 'leiden_Endothelial', 'leiden_Stromal', 'leiden_Immune', 'leiden_Epithelial', 'log1p_n_genes_by_counts', 'log1p_total_counts', 'pct_counts_in_top_50_genes', 'pct_counts_in_top_100_genes', 'pct_counts_in_top_200_genes', 'pct_counts_in_top_500_genes', 'celltype_lv2_V4', 'celltype_lv0_V4', 'celltype_lv1_V4', 'celltype_lv2_V5', 'celltype_lv0_V5', 'celltype_lv1_V5', 'leiden_scANVI', 'disease_score', 'smoker_phenotype', 'leiden_scANVI_hvg_10000', 'leiden_scANVI_nl_50', 'leiden_scANVI_hvg_10000_nl_50', 'celltype_lv3_V5'
         var: 'geneId', 'transcriptId', 'nbExons'
 
-# et voilà, nous avons terminé !
+### et voilà, nous avons terminé !

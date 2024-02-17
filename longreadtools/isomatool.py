@@ -237,13 +237,16 @@ def multiple_isomatrix_conversion(file_paths: list, # A list of file paths to be
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
+
+
+# %% ../nbs/isomatrix_tools.ipynb 15
 def load_and_set_var_names(path):
     dataset = sc.read_h5ad(path, backed='r')  # Read the file in 'backed' mode to avoid loading the whole data into memory
     dataset.var_names = dataset.var['transcriptId']
     return dataset
 
 
-# %% ../nbs/isomatrix_tools.ipynb 16
+# %% ../nbs/isomatrix_tools.ipynb 17
 def feature_set_standardization(adatas:list, # list of AnnData objects or paths to AnnData files
                                 standardization_method:str = 'union' # str specifiying method to use union or intersection
                                 ) -> list: # list of anndata objects with the features standardised 
@@ -310,7 +313,7 @@ def feature_set_standardization(adatas:list, # list of AnnData objects or paths 
             standardized_adatas.append(dataset)
     return standardized_adatas
 
-# %% ../nbs/isomatrix_tools.ipynb 18
+# %% ../nbs/isomatrix_tools.ipynb 19
 def check_anndata_for_saving(adata: AnnData, # The AnnData object to check.
                                verbose: bool = False # If True, print status messages. Defaults to False.
                                ):
@@ -375,7 +378,7 @@ def check_anndata_for_saving(adata: AnnData, # The AnnData object to check.
         print("Preparation complete.")
 
 
-# %% ../nbs/isomatrix_tools.ipynb 20
+# %% ../nbs/isomatrix_tools.ipynb 21
 def make_unique_batch_keys(batch_keys):
     unique_keys = set()
     final_keys = []
@@ -389,6 +392,9 @@ def make_unique_batch_keys(batch_keys):
         final_keys.append(key)
     return final_keys
 
+
+
+# %% ../nbs/isomatrix_tools.ipynb 22
 def concatenate_anndata(h5ad_inputs: list, # A list of AnnData objects or paths to .h5ad files.
                          standardization_method='union', # The method to standardize the feature sets across all AnnData objects. It can be either 'union' or 'intersection'. Default is 'union'.
                          sparse=False, # Optional flag to convert the final matrix to sparse. Default is False.

@@ -22,6 +22,8 @@ import os
 from functools import partial
 from scipy.sparse import issparse
 
+# Suppress all warnings
+warnings.filterwarnings('ignore')
 
 
 # %% ../nbs/isomatrix_tools.ipynb 5
@@ -396,6 +398,19 @@ def make_unique_batch_keys(batch_keys):
 
 
 # %% ../nbs/isomatrix_tools.ipynb 22
+def make_unique_batch_keys(batch_keys):
+    unique_keys = set()
+    final_keys = []
+    for key in batch_keys:
+        original_key = key
+        counter = 1
+        while key in unique_keys:
+            key = f"{original_key}_{counter}"
+            counter += 1
+        unique_keys.add(key)
+        final_keys.append(key)
+    return final_keys
+
 def concatenate_anndata(h5ad_inputs: list, # A list of AnnData objects or paths to .h5ad files.
                          standardization_method='union', # The method to standardize the feature sets across all AnnData objects. It can be either 'union' or 'intersection'. Default is 'union'.
                          sparse=False, # Optional flag to convert the final matrix to sparse. Default is False.

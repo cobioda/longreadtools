@@ -3,4 +3,6 @@ website:
     contents:
       - index.ipynb
       - harmonisation_tools.ipynb
+      - inference_tools copy.ipynb
+      - inference_tools.ipynb
       - isomatrix_tools.ipynb

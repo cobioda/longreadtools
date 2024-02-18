@@ -37,11 +37,7 @@ LongReadTools library provides a function
 [`multiple_isomatrix_conversion`](https://cobioda.github.io/longreadtools/isomatrix_tools.html#multiple_isomatrix_conversion),
 which allows for batch conversion of isomatrix text files into Anndata
 objects, a binary format for representing large datasets in the context
-of single-cell genomics. This is particularly useful for downstream
-analysis and integration with other single-cell analysis tools such as
-Scanpy. The conversion process is essential for enabling efficient data
-handling and manipulation, as Anndata objects are optimized for
-high-performance computing tasks.
+of single-cell genomics.
 
 ``` python
 import os
@@ -66,10 +62,7 @@ single-cell genomics data, which facilitates efficient data handling and
 manipulation, making them ideal for high-throughput computational
 analysis. The
 [`multiple_isomatrix_conversion`](https://cobioda.github.io/longreadtools/isomatrix_tools.html#multiple_isomatrix_conversion)
-function from `isomatool` will be used to perform this batch conversion,
-setting the stage for subsequent data integration and analysis steps,
-such as normalization, dimensionality reduction, and cell clustering
-using tools like Scanpy.
+function from `isomatool` will be used to perform this batch conversion.
 
 ``` python
 from longreadtools.isomatool import *
@@ -112,9 +105,7 @@ Now that we have concatenated the Anndata objects, let’s examine the
 resulting object to ensure it’s structured correctly and ready for
 downstream analysis. We will display the shape of the matrix, the
 metadata associated with observations (cells), and the variables (genes)
-to get an overview of the dataset. Additionally, we will check for any
-potential issues such as non-unique observation names, which we’ve been
-warned about in the output from cell 20.
+to get an overview of the dataset.
 
 ``` python
 # Display the shape of the concatenated Anndata object
@@ -151,6 +142,9 @@ if not andata_concat.obs_names.is_unique:
     ENST00000368659       SLC27A3  ENST00000368659       2
     ENST00000669353  TMEM161B-AS1  ENST00000669353       4
     Observation names were not unique; they have been made unique.
+
+Access the count matrix from the concatenated Anndata object to analyze
+the transcript count data.
 
 ``` python
 andata_concat.X
@@ -238,10 +232,7 @@ object to an HDF5 file, a format widely adopted for storing extensive
 scientific data. The chosen filename
 ‘discovair_long_read_transcript_matrix.h5ad’ clearly reflects the file’s
 contents, representing the transcript matrix obtained from long-read
-sequencing data. The HDF5 format is particularly advantageous for
-Anndata objects as it facilitates the efficient storage and retrieval of
-large, intricate datasets, which is quintessential for managing the
-high-dimensional data produced by single-cell sequencing technologies.
+sequencing data.
 
 ``` python
 andata_concat.write_h5ad('discovair_long_read_transcript_matrix.h5ad')
@@ -262,7 +253,7 @@ isoform_anndata_from_long_reads = sc.read_h5ad("discovair_long_read_transcript_m
 gene_anndata_from_short_reads = sc.read_h5ad("/data/analysis/data_mcandrew/000-sclr-discovair/integrated_V10.h5ad")
 ```
 
-lets take a look at both
+Examining the long-read transcript matrix:
 
 ``` python
 isoform_anndata_from_long_reads
@@ -271,6 +262,8 @@ isoform_anndata_from_long_reads
     AnnData object with n_obs × n_vars = 122872 × 89177
         obs: 'batch'
         var: 'geneId', 'transcriptId', 'nbExons'
+
+Next, we examine the much larger short-read gene-level dataset:
 
 ``` python
 gene_anndata_from_short_reads
@@ -283,6 +276,15 @@ gene_anndata_from_short_reads
         obsm: 'X_pca', 'X_scANVI', 'X_scANVI_hvg_10000', 'X_scANVI_hvg_10000_nl_50', 'X_scANVI_nl_50', 'X_umap', 'dorothea_mlm_estimate', 'dorothea_mlm_pvals', 'mlm_estimate', 'mlm_pvals'
         varm: 'PCs', 'gini_celltype', 'n_cells_celltype_lv2_V3'
         obsp: 'connectivities', 'distances', 'neighbors_scanvi_connectivities', 'neighbors_scanvi_distances'
+
+The short-read gene quantification dataset contains a significantly
+higher number of cells compared to the long-read dataset. Notably, the
+short-read dataset is annotated, whereas the long-read dataset lacks
+annotations. Given that both datasets originate from the same library,
+which was subsequently divided and sequenced on different platforms,
+there is an expected overlap in cell identities. This commonality
+provides an opportunity to transfer annotations from the short-read to
+the long-read dataset by matching corresponding cells.
 
 ``` python
 gene_anndata_from_short_reads.obs
@@ -388,10 +390,7 @@ gene_matrtrix  = subset_common_cells(gene_anndata_from_short_reads, isoform_matr
 The next step in our analysis pipeline is to transfer the observation
 annotations from the `gene_matrix` Anndata object, which contains the
 short-read sequencing data, to the `isoform_matrix` Anndata object,
-which contains the long-read sequencing data. This is a critical step as
-it ensures that the metadata, which includes information such as cell
-type, condition, and experimental batch, is consistently annotated
-across both datasets. The
+which contains the long-read sequencing data. The
 [`transfer_obs`](https://cobioda.github.io/longreadtools/harmonisation_tools.html#transfer_obs)
 function from the longreadtools library is instrumental in this process.
 It meticulously maps the `.obs` attributes from one Anndata object to

@@ -363,10 +363,7 @@ function is crucial for ensuring that we are comparing the same cells
 across the two Anndata objects - one derived from long-read sequencing
 and the other from short-read sequencing. By importing and applying this
 function, we can identify the intersection of cells present in both
-datasets, allowing for a consistent and integrated analysis. This step
-is foundational for the subsequent comparative analysis and integration
-tasks that leverage the unique advantages of each sequencing technology
-within the longreadtools framework.
+datasets, allowing for a consistent and integrated analysis.
 
 ``` python
 from longreadtools.Standardization import *
@@ -406,12 +403,7 @@ product of the meticulous standardization and subsetting processes we
 have applied to our Anndata objects. The `annotated_isoform_matrix` is a
 rich dataset that combines the detailed isoform data obtained from
 long-read sequencing with the comprehensive annotations transferred from
-the gene matrix derived from short-read sequencing. This matrix is a
-testament to the capabilities of the `longreadtools` library,
-particularly showcasing the
-[`transfer_obs`](https://cobioda.github.io/longreadtools/harmonisation_tools.html#transfer_obs)
-function, which we have utilized to enrich our isoform data with
-valuable metadata from the gene matrix.
+the gene matrix derived from short-read sequencing.
 
 ``` python
 annotated_isoform_matrix.X

@@ -24,13 +24,6 @@ for high-throughput single-cell genomics analysis. The example will
 cover the necessary steps from data retrieval and processing to the
 final conversion using LongReadTools’ specialized functions.
 
-Here we will use the `isomatrix_tools` module to convert our isomatrix
-txt files in bulk into `anndata` objects using the
-[`multiple_isomatrix_conversion`](https://cobioda.github.io/longreadtools/isomatrix_tools.html#multiple_isomatrix_conversion)
-function. Then, we will utilize our specialized
-[`concatenate_anndata`](https://cobioda.github.io/longreadtools/isomatrix_tools.html#concatenate_anndata)
-function to generate a concatenated `anndata` for downstream analysis.
-
 In this section, we will retrieve a list of isomatrix files for
 conversion into Anndata objects. The `isomatrix_tools` module within the
 LongReadTools library provides a function

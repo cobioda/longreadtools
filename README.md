@@ -47,15 +47,13 @@ high-performance computing tasks.
 import os
 import re
 
-# Define the directory path and the regex pattern
 directory = '/data/analysis/data_mcandrew/000-sclr-discovair/'
 pattern = re.compile('.*(_BIOP_INT|BIOP_NAS)$')
+matching_files = [os.path.join(directory, f) for f in os.listdir(directory) if pattern.match(f)]
+print(matching_files)
 
-# List comprehension to filter and create full paths with '_isomatrix.txt' suffix
-isomatrix_paths = [os.path.join(directory, f + '_isomatrix.txt') for f in os.listdir(directory) if pattern.match(f)]
-
-# Print the list of isomatrix file paths
-print(isomatrix_paths)
+individual_runs = [f + '_isomatrix.txt' for f in matching_files]
+isomatrix_paths = [os.path.join(f, os.path.basename(f) + '_isomatrix.txt') for f in matching_files]
 ```
 
     ['/data/analysis/data_mcandrew/000-sclr-discovair/D498_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D492_BIOP_NAS', '/data/analysis/data_mcandrew/000-sclr-discovair/D494_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D500_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D494_BIOP_NAS', '/data/analysis/data_mcandrew/000-sclr-discovair/D496_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D499_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D493_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D493_BIOP_NAS', '/data/analysis/data_mcandrew/000-sclr-discovair/D534_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D490_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D500_BIOP_NAS', '/data/analysis/data_mcandrew/000-sclr-discovair/D495_BIOP_INT', '/data/analysis/data_mcandrew/000-sclr-discovair/D492_BIOP_INT']
@@ -91,8 +89,8 @@ converted_isomatrix_paths = multiple_isomatrix_conversion(isomatrix_paths, verbo
     File /data/analysis/data_mcandrew/000-sclr-discovair/D499_BIOP_INT/D499_BIOP_INT_isomatrix.h5ad was successfully written to disk.
     File /data/analysis/data_mcandrew/000-sclr-discovair/D494_BIOP_INT/D494_BIOP_INT_isomatrix.h5ad was successfully written to disk.
     File /data/analysis/data_mcandrew/000-sclr-discovair/D492_BIOP_INT/D492_BIOP_INT_isomatrix.h5ad was successfully written to disk.
-    File /data/analysis/data_mcandrew/000-sclr-discovair/D490_BIOP_INT/D490_BIOP_INT_isomatrix.h5ad was successfully written to disk.
     File /data/analysis/data_mcandrew/000-sclr-discovair/D495_BIOP_INT/D495_BIOP_INT_isomatrix.h5ad was successfully written to disk.
+    File /data/analysis/data_mcandrew/000-sclr-discovair/D490_BIOP_INT/D490_BIOP_INT_isomatrix.h5ad was successfully written to disk.
     File /data/analysis/data_mcandrew/000-sclr-discovair/D496_BIOP_INT/D496_BIOP_INT_isomatrix.h5ad was successfully written to disk.
     File /data/analysis/data_mcandrew/000-sclr-discovair/D534_BIOP_INT/D534_BIOP_INT_isomatrix.h5ad was successfully written to disk.
     File /data/analysis/data_mcandrew/000-sclr-discovair/D492_BIOP_NAS/D492_BIOP_NAS_isomatrix.h5ad was successfully written to disk.
@@ -108,7 +106,7 @@ andata_concat = concatenate_anndata(converted_isomatrix_paths, verbose = True)
     Final Check...
     Concatenation complete.
 
-    Standardizing anndata features via union: 100%|██████████| 14/14 [01:04<00:00,  4.61s/it]
+    Standardizing anndata features via union: 100%|██████████| 14/14 [01:05<00:00,  4.68s/it]
 
 Now that we have concatenated the Anndata objects, let’s examine the
 resulting object to ensure it’s structured correctly and ready for
@@ -192,11 +190,11 @@ andata_concat.var
 | ENST00000368659 | SLC27A3      | ENST00000368659 | 2       |
 | ENST00000669353 | TMEM161B-AS1 | ENST00000669353 | 4       |
 | ...             | ...          | ...             | ...     |
-| ENST00000672578 | AKT3         | ENST00000672578 | 13      |
-| ENST00000468206 | FGD3         | ENST00000468206 | 18      |
-| ENST00000668030 | AL078590.2   | ENST00000668030 | 4       |
-| ENST00000413848 | AC005037.1   | ENST00000413848 | 2       |
-| ENST00000471126 | CNOT3        | ENST00000471126 | 2       |
+| ENST00000548209 | LETMD1       | ENST00000548209 | 5       |
+| ENST00000490703 | TBC1D10B     | ENST00000490703 | 6       |
+| ENST00000617887 | TMEM200A     | ENST00000617887 | 2       |
+| ENST00000442834 | YY1AP1       | ENST00000442834 | 4       |
+| ENST00000394260 | PRICKLE4     | ENST00000394260 | 5       |
 
 <p>89177 rows × 3 columns</p>
 </div>
@@ -249,18 +247,15 @@ high-dimensional data produced by single-cell sequencing technologies.
 andata_concat.write_h5ad('discovair_long_read_transcript_matrix.h5ad')
 ```
 
-In this step, we are utilizing the `sc.read_h5ad` function to load the
-Anndata objects that contain the transcriptomic data from both long-read
-and short-read sequencing technologies. The long-read data, which
-typically provides full-length transcripts allowing for the
-identification of isoform diversity, is stored in
-“discovair_long_read_transcript_matrix.h5ad”. The short-read data, known
-for its higher throughput and quantification accuracy at the gene level,
-is stored in
-“/data/analysis/data_mcandrew/000-sclr-discovair/integrated_V10.h5ad”.
-These datasets will be used for subsequent comparative analysis and
-integration, leveraging the capabilities of the longreadtools library to
-handle and process long-read sequencing data efficiently.
+Here we employ the `sc.read_h5ad` function to import Anndata objects
+encapsulating transcriptomic data derived from long-read and short-read
+sequencing approaches. Long-read sequencing data, renowned for capturing
+full-length transcripts that unveil isoform diversity, is encapsulated
+within the Anndata object from the file
+‘discovair_long_read_transcript_matrix.h5ad’. Conversely, short-read
+sequencing data, with its larger cell number and potentially more
+accurate gene-level quantification, is contained within the Anndata
+object from the file ‘integrated_V10.h5ad’.
 
 ``` python
 isoform_anndata_from_long_reads = sc.read_h5ad("discovair_long_read_transcript_matrix.h5ad")
@@ -329,14 +324,7 @@ is imperative to harmonize the indexes of the corresponding Anndata
 objects. This step is crucial as it aligns the observations (cells)
 across the datasets, enabling a direct comparison and subsequent
 operations such as data integration, differential expression analysis,
-and visualization. The process of index matching is facilitated by the
-[`subset_common_cells`](https://cobioda.github.io/longreadtools/harmonisation_tools.html#subset_common_cells)
-function from the longreadtools library, which is designed to identify
-and retain only those cells that are present in both datasets. This
-function is exemplified in the codeblock below, where it is employed to
-refine our datasets to a common set of cells, thereby setting the stage
-for a robust comparative analysis that leverages the unique strengths of
-each sequencing technology within the longreadtools framework.
+and visualization.
 
 ``` python
 isoform_anndata_from_long_reads.obs['batch'] = isoform_anndata_from_long_reads.obs['batch'].astype(str)
@@ -347,12 +335,7 @@ After the standardization of the Anndata objects’ indexes, we can
 confirm that the indexes are now aligned and ready for comparative
 analysis. This alignment is crucial for the integration of the long-read
 and short-read transcriptomic data, as it ensures that the same cells
-are represented in both datasets. The function
-[`subset_common_cells`](https://cobioda.github.io/longreadtools/harmonisation_tools.html#subset_common_cells)
-from the longreadtools library, which is highlighted in the codeblock
-below, plays a pivotal role in this process. By subsetting the Anndata
-objects to include only the common cells, we facilitate a more accurate
-and meaningful comparison between the datasets.
+are represented in both datasets can be identified.
 
 ``` python
 isoform_anndata_from_long_reads.obs_names
@@ -396,14 +379,7 @@ sequencing data. The next logical step is to apply the same subsetting
 process to the gene Anndata object from short-read sequencing data. This
 ensures that both datasets are synchronized and contain only the cells
 common to both, which is a prerequisite for accurate annotation
-transfer. The annotations, which include vital metadata such as cell
-type, condition, and experimental batch information, are crucial for
-downstream analysis and interpretation of the integrated dataset. The
-codeblock below demonstrates the use of the
-[`subset_common_cells`](https://cobioda.github.io/longreadtools/harmonisation_tools.html#subset_common_cells)
-function for this purpose, setting the stage for a seamless transfer of
-annotations from the short-read to the long-read dataset within the
-longreadtools framework.
+transfer.
 
 ``` python
 gene_matrtrix  = subset_common_cells(gene_anndata_from_short_reads, isoform_matrix)
@@ -420,10 +396,7 @@ across both datasets. The
 function from the longreadtools library is instrumental in this process.
 It meticulously maps the `.obs` attributes from one Anndata object to
 another based on the shared cell identifiers, thus preserving the
-integrity of the data and enabling a seamless integration. The codeblock
-below demonstrates the application of this function, which is a
-testament to the library’s capability to facilitate complex operations
-in transcriptomic data analysis within a unified framework.
+integrity of the data and enabling a seamless integration.
 
 ``` python
 annotated_isoform_matrix = transfer_obs(gene_matrtrix, isoform_matrix)
@@ -439,14 +412,7 @@ testament to the capabilities of the `longreadtools` library,
 particularly showcasing the
 [`transfer_obs`](https://cobioda.github.io/longreadtools/harmonisation_tools.html#transfer_obs)
 function, which we have utilized to enrich our isoform data with
-valuable metadata from the gene matrix. By examining this matrix, we
-gain insights into the transcriptomic landscape at an isoform
-resolution, which is crucial for understanding the complexity of gene
-expression patterns. The annotations included in this matrix, such as
-cell type, donor information, and technical attributes, are pivotal for
-subsequent analyses that aim to unravel the biological and clinical
-significance of the data within the context of the longreadtools
-framework.
+valuable metadata from the gene matrix.
 
 ``` python
 annotated_isoform_matrix.X
@@ -459,6 +425,14 @@ annotated_isoform_matrix.X
            [3., 0., 0., ..., 0., 0., 0.],
            [1., 0., 0., ..., 0., 0., 0.],
            [0., 0., 0., ..., 0., 0., 0.]], dtype=float32)
+
+By examining this matrix, we gain insights into the transcriptomic
+landscape at an isoform resolution, which is crucial for understanding
+the complexity of gene expression patterns. The annotations included in
+this matrix, such as cell type, donor information, and technical
+attributes, are pivotal for subsequent analyses that aim to unravel the
+biological and clinical significance of the data within the context of
+the longreadtools framework. Lets save it to disk for later use!
 
 ``` python
 annotated_isoform_matrix.write('/data/analysis/data_mcandrew/000-sclr-discovair/discovair_long_read_transcript_matrix_annotated.h5ad')
